@@ -1,32 +1,64 @@
-function sendMessage() {
-    var mobileNumber = document.getElementById("mobileNumber").value.trim();
-    var latitude = document.getElementById("latitude").value.trim();
-    var longitude = document.getElementById("longitude").value.trim();
-    var resultElement = document.getElementById("result");
+let selectedLat = null;
+let selectedLng = null;
+let map, marker;
 
-    // Basic validations
-    if (!mobileNumber || !latitude || !longitude) {
-        resultElement.innerHTML = "Please fill in all fields.";
+function initMap() {
+    const defaultLocation = { lat: 20.5937, lng: 78.9629 }; // India default center
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 4,
+    });
+
+    map.addListener("click", function (event) {
+        selectedLat = event.latLng.lat();
+        selectedLng = event.latLng.lng();
+        updateMarkerAndCoords();
+    });
+}
+
+function updateMarkerAndCoords() {
+    if (marker) {
+        marker.setMap(null);
+    }
+    marker = new google.maps.Marker({
+        position: { lat: selectedLat, lng: selectedLng },
+        map: map,
+    });
+    document.getElementById("coordsDisplay").innerText =
+        `Selected Location: ${selectedLat.toFixed(5)}, ${selectedLng.toFixed(5)}`;
+}
+
+function promptCoordinates() {
+    const lat = parseFloat(prompt("Enter Latitude:"));
+    const lng = parseFloat(prompt("Enter Longitude:"));
+    if (!isNaN(lat) && !isNaN(lng)) {
+        selectedLat = lat;
+        selectedLng = lng;
+        map.setCenter({ lat: lat, lng: lng });
+        map.setZoom(10);
+        updateMarkerAndCoords();
+    } else {
+        alert("Invalid coordinates.");
+    }
+}
+
+function sendMessage() {
+    const mobileNumber = document.getElementById("mobileNumber").value.trim();
+    const resultElement = document.getElementById("result");
+
+    if (!mobileNumber || !selectedLat || !selectedLng) {
+        resultElement.innerHTML = "Please fill all required fields and select a location.";
         return;
     }
 
     if (!mobileNumber.startsWith("+")) {
-        resultElement.innerHTML = "Invalid number. Please start with a '+' sign.";
+        resultElement.innerHTML = "Mobile number must start with '+'.";
         return;
     }
 
-    if (isNaN(latitude) || isNaN(longitude)) {
-        resultElement.innerHTML = "Latitude and Longitude must be numeric.";
-        return;
-    }
-
-    // You can replace this with actual API/backend logic
-    // Example: Creating a Google Maps link
-    const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-    // Show success message
+    const mapsLink = `https://www.google.com/maps?q=${selectedLat},${selectedLng}`;
     resultElement.innerHTML = `
         Message sent to ${mobileNumber}!<br>
-        <a href="${mapsLink}" target="_blank">View Custom Location</a>
+        <a href="${mapsLink}" target="_blank">View Location</a>
     `;
 }
