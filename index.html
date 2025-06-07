@@ -1,27 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Custom Location Selector</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css" />
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfG16zkOmBP2IHCoVkvXc5nf9caENW5QE&callback=initMap" async defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Location & WhatsApp Tool</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #121212;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #f0f0f0;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00ffcc;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input {
+      background-color: #1e1e1e;
+      color: #fff;
+    }
+    button {
+      background-color: #00ffcc;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #00ddaa;
+    }
+    #map {
+      height: 300px;
+      width: 100%;
+      margin: 15px 0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .coordinates {
+      display: flex;
+      gap: 10px;
+    }
+    .coordinates input {
+      flex: 1;
+    }
+    @media (max-width: 500px) {
+      input, button {
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <label for="mobileNumber">Enter Mobile Number:</label>
-    <input type="text" id="mobileNumber" placeholder="e.g., +1234567890" />
+  <h2>Location & WhatsApp Tool</h2>
 
-    <div id="map" style="height: 400px; margin-top: 15px;"></div>
-
-    <p id="coordsDisplay">Click on map to select location</p>
-
-    <button onclick="promptCoordinates()">Enter Coordinates Manually</button>
-    <button onclick="sendMessage()">Send Message</button>
-
-    <p id="result"></p>
+  <div class="section">
+    <label for="phoneNumber">📞 Enter Mobile Number:</label>
+    <input type="tel" id="phoneNumber" placeholder="+919876543210"/>
+    <button onclick="sendWhatsAppMessage()">Send Message via WhatsApp</button>
   </div>
 
-  <script src="script.js"></script>
+  <div class="section">
+    <label>🗺️ Click on the map to select location:</label>
+    <div id="map"></div>
+
+    <div class="coordinates">
+      <input type="text" id="lat" placeholder="Latitude"/>
+      <input type="text" id="lng" placeholder="Longitude"/>
+    </div>
+
+    <button onclick="enterManualCoordinates()">Set Manual Coordinates</button>
+    <button onclick="sendManualLocation()">Send Location</button>
+  </div>
+
+  <script>
+    // WhatsApp Redirect
+    function sendWhatsAppMessage() {
+      const number = document.getElementById("phoneNumber").value.trim();
+      if (number) {
+        window.open(`https://wa.me/${number}`, "_blank");
+      } else {
+        alert("Please enter a valid phone number.");
+      }
+    }
+
+    let map, selectedLatLng;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 5,
+        center: { lat: 20.5937, lng: 78.9629 },
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#212121" }] },
+          { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+          {
+            featureType: "administrative",
+            elementType: "geometry",
+            stylers: [{ color: "#757575" }],
+          },
+          {
+            featureType: "poi",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#757575" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#383838" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "geometry",
+            stylers: [{ color: "#484848" }],
+          },
+          {
+            featureType: "transit",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#757575" }],
+          },
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#000000" }],
+          },
+        ],
+      });
+
+      map.addListener("click", function (e) {
+        selectedLatLng = e.latLng;
+        placeMarker(selectedLatLng);
+      });
+    }
+
+    function placeMarker(position) {
+      new google.maps.Marker({
+        position,
+        map,
+      });
+    }
+
+    function enterManualCoordinates() {
+      const lat = parseFloat(document.getElementById("lat").value);
+      const lng = parseFloat(document.getElementById("lng").value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        selectedLatLng = { lat, lng };
+        map.setCenter(selectedLatLng);
+        placeMarker(selectedLatLng);
+      } else {
+        alert("Please enter valid latitude and longitude.");
+      }
+    }
+
+    function sendManualLocation() {
+      if (selectedLatLng) {
+        const lat = selectedLatLng.lat || selectedLatLng.lat();
+        const lng = selectedLatLng.lng || selectedLatLng.lng();
+        alert(`Selected Location:\nLatitude: ${lat}\nLongitude: ${lng}`);
+      } else {
+        alert("No location selected.");
+      }
+    }
+  </script>
+
+  <!-- Google Maps API -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfG16zkOmBP2IHCoVkvXc5nf9caENW5QE&callback=initMap"
+    async defer>
+  </script>
 </body>
 </html>
