@@ -1,101 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Send Location on WhatsApp</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Location Tool</title>
   <style>
     body {
+      font-family: 'Segoe UI', sans-serif;
       background-color: #121212;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      color: white;
+      text-align: center;
       padding: 20px;
     }
-    h2 {
-      margin-bottom: 10px;
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
     }
-    input, button {
+    input, button, select {
+      width: 100%;
       padding: 10px;
+      margin: 10px 0;
       border: none;
       border-radius: 8px;
-      margin: 5px;
       font-size: 16px;
     }
     input {
-      width: 250px;
+      background-color: #2a2a2a;
+      color: white;
     }
     button {
-      background-color: #03dac6;
-      color: #000;
+      background-color: #00e5ff;
+      color: black;
+      font-weight: bold;
       cursor: pointer;
     }
     #map {
-      width: 90vw;
-      height: 50vh;
-      margin: 20px 0;
-      border: 2px solid #03dac6;
+      width: 100%;
+      height: 300px;
       border-radius: 10px;
+      margin-top: 10px;
+    }
+    .mode-switch {
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
-  <h2>Enter Mobile Number:</h2>
-  <input type="tel" id="number" placeholder="e.g., +919876543210" />
+  <div class="container">
+    <h2>WhatsApp Location Tool</h2>
 
-  <div id="map"></div>
+    <div class="mode-switch">
+      <label for="mode">Select Mode:</label>
+      <select id="mode">
+        <option value="redirect">Redirect to WhatsApp</option>
+        <option value="tamper">Tamper Location</option>
+      </select>
+    </div>
 
-  <p>Click on map to select location</p>
-  <button onclick="enterCoordinates()">Enter Coordinates Manually</button>
-  <button onclick="sendMessage()">Send Message</button>
+    <input id="number" type="text" placeholder="Enter Mobile Number (+91...)" />
+
+    <div id="map"></div>
+    <input id="latitude" placeholder="Latitude" />
+    <input id="longitude" placeholder="Longitude" />
+
+    <button onclick="sendLocation()">Send Location via WhatsApp</button>
+  </div>
 
   <script>
-    let selectedLat = null;
-    let selectedLng = null;
+    let map, marker;
+    let mode = "redirect";
+
+    document.getElementById('mode').addEventListener('change', function () {
+      mode = this.value;
+    });
 
     function initMap() {
-      const defaultLocation = { lat: 20.5937, lng: 78.9629 };
-      const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 5,
-        center: defaultLocation,
-        styles: [
-          { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] }
-        ]
+      const defaultLoc = { lat: 17.385044, lng: 78.486671 }; // Hyderabad
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLoc,
+        zoom: 13,
+        disableDefaultUI: true,
       });
 
-      map.addListener("click", (event) => {
-        selectedLat = event.latLng.lat();
-        selectedLng = event.latLng.lng();
-        alert(`Location selected: ${selectedLat}, ${selectedLng}`);
+      marker = new google.maps.Marker({
+        position: defaultLoc,
+        map: map,
+        draggable: true,
+      });
+
+      map.addListener("click", (e) => {
+        marker.setPosition(e.latLng);
+        document.getElementById("latitude").value = e.latLng.lat().toFixed(6);
+        document.getElementById("longitude").value = e.latLng.lng().toFixed(6);
+      });
+
+      marker.addListener('dragend', function () {
+        let pos = marker.getPosition();
+        document.getElementById("latitude").value = pos.lat().toFixed(6);
+        document.getElementById("longitude").value = pos.lng().toFixed(6);
       });
     }
 
-    function enterCoordinates() {
-      const manual = prompt("Enter coordinates as 'lat,lng':");
-      if (manual) {
-        const [lat, lng] = manual.split(",").map(Number);
-        selectedLat = lat;
-        selectedLng = lng;
-        alert(`Manual location set to: ${selectedLat}, ${selectedLng}`);
-      }
-    }
-
-    function sendMessage() {
+    function sendLocation() {
       const number = document.getElementById("number").value.trim();
-      if (!number || (!selectedLat || !selectedLng)) {
-        alert("Please enter number and select location");
+      const lat = document.getElementById("latitude").value.trim();
+      const lng = document.getElementById("longitude").value.trim();
+
+      if (!number.startsWith("+")) {
+        alert("Please enter number in international format e.g. +91...");
         return;
       }
-      const locationUrl = `https://www.google.com/maps?q=${selectedLat},${selectedLng}`;
-      const message = encodeURIComponent(`Hey, here's my location: ${locationUrl}`);
-      const url = `https://wa.me/${number.replace(/[^\d]/g, '')}?text=${message}`;
-      window.open(url, "_blank");
+
+      let message = "";
+      if (mode === "redirect") {
+        message = `Hi, here's my current location: https://maps.google.com/?q=${lat},${lng}`;
+      } else {
+        if (!lat || !lng) {
+          alert("Please select or enter coordinates.");
+          return;
+        }
+        message = `Hey! This is where I am: https://maps.google.com/?q=${lat},${lng}`;
+      }
+
+      const link = `https://wa.me/${number.replace('+', '')}?text=${encodeURIComponent(message)}`;
+      window.open(link, "_blank");
     }
   </script>
+
   <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfG16zkOmBP2IHCoVkvXc5nf9caENW5QE&callback=initMap">
   </script>
