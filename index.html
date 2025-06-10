@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WhatsApp Location Tool</title>
   <style>
     body {
@@ -63,15 +63,15 @@
 
     <input id="number" type="text" placeholder="Enter Mobile Number (+91...)" />
 
+    <input id="searchInput" type="text" placeholder="Search for a place" />
+
     <div id="map"></div>
+
     <input id="latitude" placeholder="Latitude" />
     <input id="longitude" placeholder="Longitude" />
 
     <button onclick="sendLocation()">Send Location via WhatsApp</button>
-  </div> 
-  <input type="text" id="searchInput" placeholder="Search for a place" />
-<button onclick="searchLocation()">Search</button>
-
+  </div>
 
   <script>
     let map, marker;
@@ -106,6 +106,29 @@
         document.getElementById("latitude").value = pos.lat().toFixed(6);
         document.getElementById("longitude").value = pos.lng().toFixed(6);
       });
+
+      initAutocomplete(); // Initialize place search
+    }
+
+    function initAutocomplete() {
+      const input = document.getElementById("searchInput");
+      const autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.bindTo("bounds", map);
+
+      autocomplete.addListener("place_changed", function () {
+        const place = autocomplete.getPlace();
+        if (!place.geometry || !place.geometry.location) {
+          alert("No details available for input: '" + place.name + "'");
+          return;
+        }
+
+        map.setCenter(place.geometry.location);
+        map.setZoom(15);
+        marker.setPosition(place.geometry.location);
+
+        document.getElementById("latitude").value = place.geometry.location.lat().toFixed(6);
+        document.getElementById("longitude").value = place.geometry.location.lng().toFixed(6);
+      });
     }
 
     function sendLocation() {
@@ -118,14 +141,15 @@
         return;
       }
 
+      if (!lat || !lng) {
+        alert("Please select or enter coordinates.");
+        return;
+      }
+
       let message = "";
       if (mode === "redirect") {
         message = `Hi, here's my current location: https://maps.google.com/?q=${lat},${lng}`;
       } else {
-        if (!lat || !lng) {
-          alert("Please select or enter coordinates.");
-          return;
-        }
         message = `Hey! This is where I am: https://maps.google.com/?q=${lat},${lng}`;
       }
 
@@ -134,8 +158,9 @@
     }
   </script>
 
+  <!-- ✅ Load Google Maps JS + Places API -->
   <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfG16zkOmBP2IHCoVkvXc5nf9caENW5QE&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap">
   </script>
 </body>
 </html>
