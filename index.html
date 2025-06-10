@@ -4,50 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WhatsApp Location Tool</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #121212;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: #1e1e1e;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-    }
-    input, button, select {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    input {
-      background-color: #2a2a2a;
-      color: white;
-    }
-    button {
-      background-color: #00e5ff;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #map {
-      width: 100%;
-      height: 300px;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-    .mode-switch {
-      margin-bottom: 15px;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
@@ -63,102 +20,20 @@
 
     <input id="number" type="text" placeholder="Enter Mobile Number (+91...)" />
 
-    <input id="searchInput" type="text" placeholder="Search for a place" />
-
     <div id="map"></div>
+    
+    <input id="searchInput" type="text" placeholder="Search for a place" />
+    <button onclick="searchLocation()">Search</button>
 
-    <input id="latitude" placeholder="Latitude" />
-    <input id="longitude" placeholder="Longitude" />
+    <input id="latitude" placeholder="Latitude" readonly />
+    <input id="longitude" placeholder="Longitude" readonly />
 
     <button onclick="sendLocation()">Send Location via WhatsApp</button>
   </div>
 
-  <script>
-    let map, marker;
-    let mode = "redirect";
-
-    document.getElementById('mode').addEventListener('change', function () {
-      mode = this.value;
-    });
-
-    function initMap() {
-      const defaultLoc = { lat: 17.385044, lng: 78.486671 }; // Hyderabad
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: defaultLoc,
-        zoom: 13,
-        disableDefaultUI: true,
-      });
-
-      marker = new google.maps.Marker({
-        position: defaultLoc,
-        map: map,
-        draggable: true,
-      });
-
-      map.addListener("click", (e) => {
-        marker.setPosition(e.latLng);
-        document.getElementById("latitude").value = e.latLng.lat().toFixed(6);
-        document.getElementById("longitude").value = e.latLng.lng().toFixed(6);
-      });
-
-      marker.addListener('dragend', function () {
-        let pos = marker.getPosition();
-        document.getElementById("latitude").value = pos.lat().toFixed(6);
-        document.getElementById("longitude").value = pos.lng().toFixed(6);
-      });
-
-      initAutocomplete(); // Initialize place search
-    }
-
-    function initAutocomplete() {
-      const input = document.getElementById("searchInput");
-      const autocomplete = new google.maps.places.Autocomplete(input);
-      autocomplete.bindTo("bounds", map);
-
-      autocomplete.addListener("place_changed", function () {
-        const place = autocomplete.getPlace();
-        if (!place.geometry || !place.geometry.location) {
-          alert("No details available for input: '" + place.name + "'");
-          return;
-        }
-
-        map.setCenter(place.geometry.location);
-        map.setZoom(15);
-        marker.setPosition(place.geometry.location);
-
-        document.getElementById("latitude").value = place.geometry.location.lat().toFixed(6);
-        document.getElementById("longitude").value = place.geometry.location.lng().toFixed(6);
-      });
-    }
-
-    function sendLocation() {
-      const number = document.getElementById("number").value.trim();
-      const lat = document.getElementById("latitude").value.trim();
-      const lng = document.getElementById("longitude").value.trim();
-
-      if (!number.startsWith("+")) {
-        alert("Please enter number in international format e.g. +91...");
-        return;
-      }
-
-      if (!lat || !lng) {
-        alert("Please select or enter coordinates.");
-        return;
-      }
-
-      let message = "";
-      if (mode === "redirect") {
-        message = `Hi, here's my current location: https://maps.google.com/?q=${lat},${lng}`;
-      } else {
-        message = `Hey! This is where I am: https://maps.google.com/?q=${lat},${lng}`;
-      }
-
-      const link = `https://wa.me/${number.replace('+', '')}?text=${encodeURIComponent(message)}`;
-      window.open(link, "_blank");
-    }
-    <script async defer
-  src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap">
-</script>
-<script src="script.js"></script>
+  <script src="script.js"></script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+  </script>
 </body>
 </html>
