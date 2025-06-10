@@ -2,38 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WhatsApp Location Tool</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0f0f0f;
+      color: #00f6ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 500px;
+      background: #1a1a1a;
+      border: 1px solid #00f6ff33;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 0 25px #00f6ff44;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #00f6ff;
+      margin-bottom: 20px;
+    }
+
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: #111;
+      color: #00f6ff;
+      border: 1px solid #00f6ff33;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus, select:focus, button:hover {
+      border-color: #00f6ff;
+      background: #0c0c0c;
+    }
+
+    button {
+      background-color: #00f6ff;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #map {
+      height: 300px;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>WhatsApp Location Tool</h2>
-
-    <div class="mode-switch">
-      <label for="mode">Select Mode:</label>
-      <select id="mode">
-        <option value="redirect">Redirect to WhatsApp</option>
-        <option value="tamper">Tamper Location</option>
-      </select>
-    </div>
-
-    <input id="number" type="text" placeholder="Enter Mobile Number (+91...)" />
-
-    <div id="map"></div>
-    
-    <input id="searchInput" type="text" placeholder="Search for a place" />
+    <h1>WhatsApp Location Tool</h1>
+    <label for="mode">Select Mode:</label>
+    <select id="mode">
+      <option value="redirect">Redirect to WhatsApp</option>
+      <option value="tamper">Tamper Location</option>
+    </select>
+    <input type="text" id="number" placeholder="Enter Mobile Number (+91...)" />
+    <input type="text" id="searchInput" placeholder="Search for a place" />
     <button onclick="searchLocation()">Search</button>
-
-    <input id="latitude" placeholder="Latitude" readonly />
-    <input id="longitude" placeholder="Longitude" readonly />
-
+    <div id="map"></div>
+    <input type="text" id="latitude" placeholder="Latitude" />
+    <input type="text" id="longitude" placeholder="Longitude" />
     <button onclick="sendLocation()">Send Location via WhatsApp</button>
   </div>
 
   <script src="script.js"></script>
   <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key= AIzaSyAfG16zkOmBP2IHCoVkvXc5nf9caENW5QE&callback=initMap&libraries=places">
   </script>
 </body>
 </html>
