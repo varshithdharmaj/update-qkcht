@@ -1,0 +1,93 @@
+let map, marker, mode = "redirect";
+
+function initMap() {
+  const defaultLoc = { lat: 17.385044, lng: 78.486671 }; // Hyderabad
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: defaultLoc,
+    zoom: 13,
+    disableDefaultUI: true,
+  });
+
+  marker = new google.maps.Marker({
+    position: defaultLoc,
+    map: map,
+    draggable: true,
+  });
+
+  map.addListener("click", (e) => {
+    marker.setPosition(e.latLng);
+    document.getElementById("latitude").value = e.latLng.lat().toFixed(6);
+    document.getElementById("longitude").value = e.latLng.lng().toFixed(6);
+  });
+
+  marker.addListener("dragend", () => {
+    const pos = marker.getPosition();
+    document.getElementById("latitude").value = pos.lat().toFixed(6);
+    document.getElementById("longitude").value = pos.lng().toFixed(6);
+  });
+
+  const input = document.getElementById("searchInput");
+  const searchBox = new google.maps.places.SearchBox(input);
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+  searchBox.addListener("places_changed", () => {
+    const places = searchBox.getPlaces();
+    if (places.length == 0) return;
+
+    const place = places[0];
+    if (!place.geometry) return;
+
+    map.setCenter(place.geometry.location);
+    map.setZoom(15);
+    marker.setPosition(place.geometry.location);
+    document.getElementById("latitude").value = place.geometry.location.lat().toFixed(6);
+    document.getElementById("longitude").value = place.geometry.location.lng().toFixed(6);
+  });
+}
+
+document.getElementById("mode").addEventListener("change", function () {
+  mode = this.value;
+});
+
+function searchLocation() {
+  const input = document.getElementById("searchInput").value;
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: input }, (results, status) => {
+    if (status === "OK") {
+      const loc = results[0].geometry.location;
+      map.setCenter(loc);
+      map.setZoom(15);
+      marker.setPosition(loc);
+      document.getElementById("latitude").value = loc.lat().toFixed(6);
+      document.getElementById("longitude").value = loc.lng().toFixed(6);
+    } else {
+      alert("Geocode was not successful: " + status);
+    }
+  });
+}
+
+function sendLocation() {
+  const number = document.getElementById("number").value.trim();
+  const lat = document.getElementById("latitude").value.trim();
+  const lng = document.getElementById("longitude").value.trim();
+
+  if (!number.startsWith("+")) {
+    alert("Please enter number in international format e.g. +91...");
+    return;
+  }
+
+  if (!lat || !lng) {
+    alert("Please select or enter coordinates.");
+    return;
+  }
+
+  let message = "";
+  if (mode === "redirect") {
+    message = `Hi, here's my current location: https://maps.google.com/?q=${lat},${lng}`;
+  } else {
+    message = `Hey! This is where I am: https://maps.google.com/?q=${lat},${lng}`;
+  }
+
+  const link = `https://wa.me/${number.replace('+', '')}?text=${encodeURIComponent(message)}`;
+  window.open(link, "_blank");
+}
